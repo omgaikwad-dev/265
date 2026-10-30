@@ -66,3 +66,4 @@ def get_fdr_renewal_history(
     Traverses and returns the complete immutable chain of previous and renewed FDR instruments.
     """
     return LifecycleService.get_renewal_lineage(db, fdr_id, current_user)
+

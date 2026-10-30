@@ -257,3 +257,4 @@ def test_tenant_isolation_on_renewals():
     # Institution 2 attempts to view renewal history
     forbidden_history = client.get(f"/api/v1/fdr/{fdr1_id}/renewal-history", headers=headers2)
     assert forbidden_history.status_code == 403
+

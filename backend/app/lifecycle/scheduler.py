@@ -54,3 +54,4 @@ def shutdown_lifecycle_scheduler():
     if scheduler and scheduler.running:
         scheduler.shutdown(wait=False)
         logger.info("APScheduler background tasks successfully terminated.")
+

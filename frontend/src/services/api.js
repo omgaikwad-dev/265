@@ -256,4 +256,33 @@ export const lifecycleService = {
   }
 };
 
+export const releaseService = {
+  requestRelease: async (fdrId, data) => {
+    const response = await apiClient.post(`/fdr/${fdrId}/request-release`, data);
+    return response.data;
+  },
+  getReleaseRequest: async (fdrId) => {
+    const response = await apiClient.get(`/fdr/${fdrId}/release-request`);
+    return response.data;
+  },
+  getApprovalQueue: async () => {
+    const response = await apiClient.get('/approval/queue');
+    return response.data;
+  },
+  decideFDR: async (fdrId, decision, remarks) => {
+    const response = await apiClient.post(`/fdr/${fdrId}/authority-decision`, {
+      decision,
+      remarks
+    });
+    return response.data;
+  },
+  decideRelease: async (releaseId, decision, remarks) => {
+    const response = await apiClient.post(`/releases/${releaseId}/authority-decision`, {
+      decision,
+      remarks
+    });
+    return response.data;
+  }
+};
+
 export default apiClient;

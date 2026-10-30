@@ -5,6 +5,7 @@ from app.models.audit import AuditLog
 from app.models.fdr import FDRRecord, FDRDocument
 from app.models.ocr import OCRExtraction
 from app.models.verification import VerificationRule, VerificationReport, Discrepancy
+from app.models.release import ReleaseRequest
 
 __all__ = [
     "Base", 
@@ -17,5 +18,6 @@ __all__ = [
     "OCRExtraction",
     "VerificationRule",
     "VerificationReport",
-    "Discrepancy"
+    "Discrepancy",
+    "ReleaseRequest"
 ]

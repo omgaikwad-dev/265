@@ -21,12 +21,14 @@ import {
   Filter
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { institutionService, fdrService, lifecycleService } from '../services/api';
+import { institutionService, fdrService, lifecycleService, releaseService } from '../services/api';
 import NewFDRModal from '../components/NewFDRModal';
 import FDRDetailModal from '../components/FDRDetailModal';
 import OCRReviewModal from '../components/OCRReviewModal';
 import VerificationReportModal from '../components/VerificationReportModal';
 import InitiateRenewalModal from '../components/InitiateRenewalModal';
+import RequestReleaseModal from '../components/RequestReleaseModal';
+import AuthorityDecisionModal from '../components/AuthorityDecisionModal';
 
 export default function Dashboard() {
   const { user, role, logout, login, demoAccounts } = useAuth();
@@ -36,6 +38,8 @@ export default function Dashboard() {
   const [loadingFdrs, setLoadingFdrs] = useState(false);
   const [institutions, setInstitutions] = useState([]);
   const [loadingInstitutions, setLoadingInstitutions] = useState(false);
+  const [approvalQueue, setApprovalQueue] = useState({ pending_scrutiny_fdrs: [], pending_releases: [] });
+  const [loadingQueue, setLoadingQueue] = useState(false);
 
   // Filter states
   const [searchQuery, setSearchQuery] = useState('');
@@ -52,6 +56,11 @@ export default function Dashboard() {
   const [verificationTargetFDR, setVerificationTargetFDR] = useState(null);
   const [isRenewalModalOpen, setIsRenewalModalOpen] = useState(false);
   const [renewalTargetFDR, setRenewalTargetFDR] = useState(null);
+  const [isReleaseModalOpen, setIsReleaseModalOpen] = useState(false);
+  const [releaseTargetFDR, setReleaseTargetFDR] = useState(null);
+  const [isAuthorityModalOpen, setIsAuthorityModalOpen] = useState(false);
+  const [authorityTargetItem, setAuthorityTargetItem] = useState(null);
+  const [authorityTargetType, setAuthorityTargetType] = useState('FDR');
   const [scanningMaturity, setScanningMaturity] = useState(false);
   const [switchingRole, setSwitchingRole] = useState(false);
 
@@ -60,7 +69,33 @@ export default function Dashboard() {
     if (role === 'ROLE_SYSTEM_ADMIN') {
       fetchInstitutions();
     }
+    if (role === 'ROLE_APPROVING_AUTHORITY') {
+      fetchApprovalQueue();
+    }
   }, [role, statusFilter, bankFilter]);
+
+  const fetchApprovalQueue = async () => {
+    setLoadingQueue(true);
+    try {
+      const q = await releaseService.getApprovalQueue();
+      setApprovalQueue(q);
+    } catch (e) {
+      console.error("Failed to load approval queue:", e);
+    } finally {
+      setLoadingQueue(false);
+    }
+  };
+
+  const handleOpenRequestRelease = (fdrItem) => {
+    setReleaseTargetFDR(fdrItem);
+    setIsReleaseModalOpen(true);
+  };
+
+  const handleOpenAuthorityDecision = (targetItem, targetType = 'FDR') => {
+    setAuthorityTargetItem(targetItem);
+    setAuthorityTargetType(targetType);
+    setIsAuthorityModalOpen(true);
+  };
 
   const fetchFDRs = async () => {
     setLoadingFdrs(true);
@@ -576,30 +611,163 @@ export default function Dashboard() {
           ========================================================================= */}
       {role === 'ROLE_APPROVING_AUTHORITY' && (
         <div className="space-y-6">
-          <div className="bg-gradient-to-r from-emerald-800 to-teal-900 rounded-xl p-6 text-white shadow-card">
-            <h3 className="text-xl font-bold">AICTE Competent Approving Authority Executive Desk</h3>
-            <p className="text-xs text-emerald-100 mt-1">
-              Final statutory approval and sign-off on scrutinized FDR instruments, renewals, and release/refund petitions.
-            </p>
+          <div className="bg-gradient-to-r from-emerald-800 to-teal-900 rounded-xl p-6 text-white shadow-card flex justify-between items-center">
+            <div>
+              <h3 className="text-xl font-bold">AICTE Competent Approving Authority Executive Desk</h3>
+              <p className="text-xs text-emerald-100 mt-1">
+                Final statutory approval and sign-off on scrutinized FDR instruments, renewals, and release/refund petitions.
+              </p>
+            </div>
+            <button
+              onClick={() => { fetchFDRs(); fetchApprovalQueue(); }}
+              className="bg-white/10 hover:bg-white/20 text-white font-semibold text-xs px-3 py-1.5 rounded-lg border border-white/20 transition flex items-center space-x-1.5"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${loadingQueue ? 'animate-spin' : ''}`} />
+              <span>Refresh Queue</span>
+            </button>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="bg-white p-5 rounded-lg border border-slate-200 shadow-subtle">
-              <span className="text-xs font-semibold uppercase text-slate-400">Cases Under Scrutiny</span>
-              <h4 className="text-2xl font-bold text-amber-700 mt-1">{underScrutinyCount} Cases</h4>
-              <p className="text-xs text-slate-500 mt-2">Scrutiny recommendations in progress</p>
+              <span className="text-xs font-semibold uppercase text-slate-400">Scrutiny Cases Awaiting Sign-off</span>
+              <h4 className="text-2xl font-bold text-amber-700 mt-1">
+                {fdrs.filter(f => f.lifecycle_status === 'UNDER_SCRUTINY').length} Cases
+              </h4>
+              <p className="text-xs text-slate-500 mt-2">Ready for statutory approval</p>
             </div>
             <div className="bg-white p-5 rounded-lg border border-slate-200 shadow-subtle">
-              <span className="text-xs font-semibold uppercase text-slate-400">Total Approved Deposits</span>
-              <h4 className="text-2xl font-bold text-emerald-700 mt-1">{activeCount} Instruments</h4>
-              <p className="text-xs text-slate-500 mt-2">Active security deposits on record</p>
+              <span className="text-xs font-semibold uppercase text-slate-400">Release / Refund Petitions</span>
+              <h4 className="text-2xl font-bold text-primary mt-1">
+                {approvalQueue.pending_releases?.length || 0} Petitions
+              </h4>
+              <p className="text-xs text-slate-500 mt-2">Awaiting deposit release authorization</p>
             </div>
             <div className="bg-white p-5 rounded-lg border border-slate-200 shadow-subtle">
-              <span className="text-xs font-semibold uppercase text-slate-400">Total Statutory Value</span>
-              <h4 className="text-2xl font-bold text-slate-800 mt-1">₹ {totalDepositAmount.toLocaleString('en-IN')}</h4>
-              <p className="text-xs text-slate-500 mt-2">Under statutory custody</p>
+              <span className="text-xs font-semibold uppercase text-slate-400">Total Statutory Custody</span>
+              <h4 className="text-2xl font-bold text-emerald-700 mt-1">₹ {totalDepositAmount.toLocaleString('en-IN')}</h4>
+              <p className="text-xs text-slate-500 mt-2">{activeCount} Approved active instruments</p>
             </div>
           </div>
+
+          {/* Section A: Scrutiny Approval Queue */}
+          <div className="bg-white rounded-xl border border-slate-200 shadow-subtle overflow-hidden">
+            <div className="p-4 border-b border-slate-100 flex items-center justify-between">
+              <div>
+                <h4 className="text-sm font-bold text-slate-800">Scrutinized Instruments Awaiting Statutory Approval</h4>
+                <p className="text-xs text-slate-500">Examine officer recommendations and grant official AICTE approval or rejection</p>
+              </div>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs text-slate-600">
+                <thead className="bg-slate-50 text-[11px] font-bold text-slate-500 uppercase border-b border-slate-200">
+                  <tr>
+                    <th className="px-4 py-3">FDR Number</th>
+                    <th className="px-4 py-3">Bank &amp; Branch</th>
+                    <th className="px-4 py-3">Amount</th>
+                    <th className="px-4 py-3">Scrutiny Findings &amp; Recommendation</th>
+                    <th className="px-4 py-3 text-right">Statutory Action</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {fdrs.filter(f => f.lifecycle_status === 'UNDER_SCRUTINY').map((item) => (
+                    <tr key={item.id} className="hover:bg-slate-50">
+                      <td className="px-4 py-3 font-mono font-bold text-primary">{item.fdr_number}</td>
+                      <td className="px-4 py-3">{item.bank_name} ({item.branch_name})</td>
+                      <td className="px-4 py-3 font-semibold text-slate-800">₹ {Number(item.deposit_amount).toLocaleString('en-IN')}</td>
+                      <td className="px-4 py-3">
+                        <span className="text-slate-700 font-medium">
+                          {item.scrutiny_remarks || 'Awaiting officer scrutiny findings'}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-right">
+                        <div className="flex items-center justify-end space-x-1.5">
+                          <button
+                            onClick={() => handleOpenVerification(item)}
+                            className="bg-amber-50 hover:bg-amber-100 text-amber-800 font-semibold text-[11px] px-2 py-1 rounded transition"
+                          >
+                            Inspect Dossier
+                          </button>
+                          <button
+                            onClick={() => handleOpenAuthorityDecision(item, 'FDR')}
+                            className="bg-emerald-700 hover:bg-emerald-800 text-white font-semibold text-xs px-3 py-1.5 rounded-lg transition shadow-xs"
+                          >
+                            Sign-Off Decision
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                  {fdrs.filter(f => f.lifecycle_status === 'UNDER_SCRUTINY').length === 0 && (
+                    <tr>
+                      <td colSpan="5" className="px-4 py-6 text-center text-slate-400">
+                        No scrutiny cases awaiting Approving Authority sign-off at this time.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* Section B: Security Deposit Release & Refund Petitions Queue */}
+          <div className="bg-white rounded-xl border border-slate-200 shadow-subtle overflow-hidden">
+            <div className="p-4 border-b border-slate-100 flex items-center justify-between">
+              <div>
+                <h4 className="text-sm font-bold text-slate-800">Security Deposit Release &amp; Refund Petitions</h4>
+                <p className="text-xs text-slate-500">Petitions submitted by institutions for release of matured or authorized deposits</p>
+              </div>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs text-slate-600">
+                <thead className="bg-slate-50 text-[11px] font-bold text-slate-500 uppercase border-b border-slate-200">
+                  <tr>
+                    <th className="px-4 py-3">Petition ID</th>
+                    <th className="px-4 py-3">FDR Reference</th>
+                    <th className="px-4 py-3">Refund Account Details</th>
+                    <th className="px-4 py-3">Legal Justification</th>
+                    <th className="px-4 py-3">Status</th>
+                    <th className="px-4 py-3 text-right">Statutory Action</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {approvalQueue.pending_releases?.map((rel) => (
+                    <tr key={rel.id} className="hover:bg-slate-50">
+                      <td className="px-4 py-3 font-mono font-bold text-slate-700">#{rel.id}</td>
+                      <td className="px-4 py-3 font-mono text-primary font-bold">FDR #{rel.fdr_id}</td>
+                      <td className="px-4 py-3">
+                        <div className="font-semibold text-slate-800">{rel.refund_beneficiary_name}</div>
+                        <div className="text-[10px] text-slate-400 font-mono">
+                          {rel.refund_bank_name} • {rel.refund_account_number} (IFSC: {rel.refund_ifsc})
+                        </div>
+                      </td>
+                      <td className="px-4 py-3 text-slate-700">{rel.release_reason}</td>
+                      <td className="px-4 py-3">
+                        <span className="bg-amber-100 text-amber-800 font-bold px-2.5 py-0.5 rounded-full text-[10px] uppercase">
+                          {rel.status}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-right">
+                        <button
+                          onClick={() => handleOpenAuthorityDecision(rel, 'RELEASE')}
+                          className="bg-emerald-700 hover:bg-emerald-800 text-white font-semibold text-xs px-3 py-1.5 rounded-lg transition shadow-xs"
+                        >
+                          Authorize Release
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                  {(!approvalQueue.pending_releases || approvalQueue.pending_releases.length === 0) && (
+                    <tr>
+                      <td colSpan="6" className="px-4 py-6 text-center text-slate-400">
+                        No pending release/refund petitions awaiting authority authorization.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
         </div>
       )}
 
@@ -707,6 +875,7 @@ export default function Dashboard() {
         onOpenOCR={handleOpenOCR}
         onOpenVerification={handleOpenVerification}
         onOpenRenewal={handleOpenRenewal}
+        onOpenRelease={handleOpenRequestRelease}
         onRefresh={() => {
           fetchFDRs();
           if (selectedFDR) {
@@ -756,6 +925,32 @@ export default function Dashboard() {
         }}
         onSuccess={() => {
           fetchFDRs();
+        }}
+      />
+
+      <RequestReleaseModal
+        fdr={releaseTargetFDR}
+        isOpen={isReleaseModalOpen}
+        onClose={() => {
+          setIsReleaseModalOpen(false);
+          setReleaseTargetFDR(null);
+        }}
+        onSuccess={() => {
+          fetchFDRs();
+        }}
+      />
+
+      <AuthorityDecisionModal
+        item={authorityTargetItem}
+        type={authorityTargetType}
+        isOpen={isAuthorityModalOpen}
+        onClose={() => {
+          setIsAuthorityModalOpen(false);
+          setAuthorityTargetItem(null);
+        }}
+        onSuccess={() => {
+          fetchFDRs();
+          fetchApprovalQueue();
         }}
       />
 
