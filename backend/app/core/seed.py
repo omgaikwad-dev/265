@@ -2,6 +2,7 @@ import logging
 from sqlalchemy.orm import Session
 from app.core.database import Base, engine, SessionLocal
 from app.core.security import hash_password
+import app.models
 from app.models.user import Role, User
 from app.models.institution import Institution
 from app.models.audit import AuditLog

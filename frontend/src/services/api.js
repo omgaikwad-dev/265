@@ -285,4 +285,31 @@ export const releaseService = {
   }
 };
 
+export const notificationService = {
+  getNotifications: async (params = {}) => {
+    const response = await apiClient.get('/notifications', { params });
+    return response.data;
+  },
+  markAsRead: async (notificationId) => {
+    const response = await apiClient.patch(`/notifications/${notificationId}/read`);
+    return response.data;
+  },
+  markAllAsRead: async () => {
+    const response = await apiClient.post('/notifications/mark-all-read');
+    return response.data;
+  },
+  triggerEscalation: async () => {
+    const response = await apiClient.post('/notifications/trigger-escalation');
+    return response.data;
+  },
+  getEscalationLogs: async (params = {}) => {
+    const response = await apiClient.get('/notifications/escalation-logs', { params });
+    return response.data;
+  },
+  sendTestNotification: async (data) => {
+    const response = await apiClient.post('/notifications/test-dispatch', data);
+    return response.data;
+  }
+};
+
 export default apiClient;

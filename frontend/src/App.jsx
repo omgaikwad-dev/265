@@ -19,6 +19,7 @@ import { systemService } from './services/api';
 import Login from './pages/Login';
 import RegisterInstitution from './pages/RegisterInstitution';
 import Dashboard from './pages/Dashboard';
+import NotificationBellDropdown from './components/NotificationBellDropdown';
 
 function MainApp() {
   const { user, isAuthenticated, loading: authLoading } = useAuth();
@@ -60,12 +61,12 @@ function MainApp() {
   const phases = [
     { num: 1, title: "Foundation & Full-Stack Connectivity", status: "VERIFIED", desc: "FastAPI REST backend, Vite React frontend, database engine & live health check API" },
     { num: 2, title: "Authentication & Role-Based Access Control", status: "VERIFIED", desc: "JWT tokens, Bcrypt hashing, 5 independent user roles, institution data isolation" },
-    { num: 3, title: "Institution & FDR Management", status: "Upcoming", desc: "Institution profiles, FDR repository, isolated multi-tenant records" },
-    { num: 4, title: "OCR & Document Intelligence", status: "Upcoming", desc: "PaddleOCR & PyMuPDF extraction, field confidence scoring, human review interface" },
-    { num: 5, title: "Intelligent Verification Engine", status: "Upcoming", desc: "12 automated validation rules, cross-document discrepancy detection" },
-    { num: 6, title: "FDR Lifecycle Monitoring", status: "Upcoming", desc: "Maturity tracking, renewal workflows, replacement linking, expiry alerts" },
-    { num: 7, title: "Release & Refund Workflow", status: "Upcoming", desc: "Multi-level scrutiny queue, approving authority decision recording" },
-    { num: 8, title: "Notification Engine", status: "Upcoming", desc: "Scheduled reminders (90/60/30/15/7 days), in-app alerts, audit escalations" },
+    { num: 3, title: "Institution & FDR Management", status: "VERIFIED", desc: "Institution profiles, FDR repository, isolated multi-tenant records" },
+    { num: 4, title: "OCR & Document Intelligence", status: "VERIFIED", desc: "PaddleOCR & PyMuPDF extraction, field confidence scoring, human review interface" },
+    { num: 5, title: "Intelligent Verification Engine", status: "VERIFIED", desc: "12 automated validation rules, cross-document discrepancy detection" },
+    { num: 6, title: "FDR Lifecycle Monitoring", status: "VERIFIED", desc: "Maturity tracking, renewal workflows, replacement linking, expiry alerts" },
+    { num: 7, title: "Release & Refund Workflow", status: "VERIFIED", desc: "Multi-level scrutiny queue, approving authority decision recording" },
+    { num: 8, title: "Notification Engine", status: "VERIFIED", desc: "Scheduled reminders (90/60/30/15/7 days), in-app alerts, audit escalations" },
     { num: 9, title: "Dashboards & Audit Analytics", status: "Upcoming", desc: "Real-time SQL metric queries, Recharts analytics, immutable audit logs" },
     { num: 10, title: "Final Integration & Containerization", status: "Upcoming", desc: "Docker Compose, end-to-end testing, demo workflows" },
   ];
@@ -102,7 +103,7 @@ function MainApp() {
               <div className="flex items-center space-x-2.5">
                 <h1 className="text-xl font-bold text-primary tracking-tight">FDRSetu</h1>
                 <span className="bg-emerald-50 text-success text-[10px] font-bold px-2 py-0.5 rounded-full border border-emerald-200">
-                  Phase 1 &amp; 2 Complete
+                  Phase 8 Complete
                 </span>
               </div>
               <p className="text-[11px] text-slate-500 font-medium">
@@ -163,6 +164,11 @@ function MainApp() {
                 <span>Telemetry &amp; Roadmap</span>
               </button>
             </nav>
+
+            {/* Notification Center */}
+            {isAuthenticated && (
+              <NotificationBellDropdown />
+            )}
 
             {/* Health Pill */}
             <div className="flex items-center space-x-2 bg-slate-50 px-2.5 py-1.5 rounded-md border border-slate-200 text-xs">

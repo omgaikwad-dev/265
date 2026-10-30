@@ -370,3 +370,4 @@ def test_role_authorization_and_tenant_isolation_on_releases():
         headers=headers2
     )
     assert tenant_breach.status_code == 403
+

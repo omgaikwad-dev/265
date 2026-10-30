@@ -42,3 +42,4 @@ class ApprovalQueueOut(BaseModel):
     pending_scrutiny_fdrs: List[FDROut]
     pending_releases: List[ReleaseRequestOut]
     counts: Dict[str, int]
+

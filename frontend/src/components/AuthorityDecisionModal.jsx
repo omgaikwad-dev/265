@@ -213,3 +213,4 @@ export default function AuthorityDecisionModal({ item, type, isOpen, onClose, on
     </div>
   );
 }
+

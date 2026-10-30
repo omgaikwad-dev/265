@@ -80,6 +80,7 @@ class FDROut(FDRBase):
     model_config = ConfigDict(from_attributes=True)
     id: int
     institution_id: int
+    interest_rate: Optional[Decimal] = None
     ocr_status: str
     verification_status: str
     lifecycle_status: str

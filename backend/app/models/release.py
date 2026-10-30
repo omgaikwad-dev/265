@@ -33,3 +33,4 @@ class ReleaseRequest(Base):
     requested_by = relationship("User", foreign_keys=[requested_by_id])
     decided_by = relationship("User", foreign_keys=[decided_by_id])
     noc_document = relationship("FDRDocument", foreign_keys=[noc_document_id])
+

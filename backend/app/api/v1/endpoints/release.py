@@ -91,3 +91,4 @@ def record_authority_decision_on_release(
     return ApprovalService.authority_decision_on_release(
         db, release_id, decision_payload.decision, decision_payload.remarks, current_user, client_ip
     )
+

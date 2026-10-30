@@ -29,6 +29,7 @@ import VerificationReportModal from '../components/VerificationReportModal';
 import InitiateRenewalModal from '../components/InitiateRenewalModal';
 import RequestReleaseModal from '../components/RequestReleaseModal';
 import AuthorityDecisionModal from '../components/AuthorityDecisionModal';
+import NotificationBellDropdown from '../components/NotificationBellDropdown';
 
 export default function Dashboard() {
   const { user, role, logout, login, demoAccounts } = useAuth();
@@ -239,6 +240,14 @@ export default function Dashboard() {
         </div>
 
         <div className="flex items-center space-x-2">
+          {/* Regulatory Notifications & Escalation Center */}
+          <NotificationBellDropdown 
+            onSelectFDR={(fdrId) => {
+              const item = fdrs.find(f => f.id === fdrId);
+              if (item) handleOpenDetail(item);
+            }} 
+          />
+
           {/* Quick Demo Switcher Dropdown */}
           <div className="relative group">
             <button

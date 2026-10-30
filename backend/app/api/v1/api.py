@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from app.api.v1.endpoints import health, auth, institution, fdr, document, ocr, verification, lifecycle, release
+from app.api.v1.endpoints import health, auth, institution, fdr, document, ocr, verification, lifecycle, release, notification
 
 api_router = APIRouter()
 api_router.include_router(health.router, tags=["Health & System"])
@@ -11,4 +11,5 @@ api_router.include_router(ocr.router, prefix="/fdr", tags=["OCR Document Intelli
 api_router.include_router(verification.router, tags=["Verification & Scrutiny Engine"])
 api_router.include_router(lifecycle.router, tags=["FDR Lifecycle & Maturity Monitoring"])
 api_router.include_router(release.router, tags=["Release & Approving Authority Workflows"])
+api_router.include_router(notification.router, tags=["Notifications & Escalation Engine"])
 

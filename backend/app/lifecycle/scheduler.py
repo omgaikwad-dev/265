@@ -3,6 +3,7 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.cron import CronTrigger
 from app.core.database import SessionLocal
 from app.lifecycle.service import LifecycleService
+from app.notifications.service import NotificationService
 
 logger = logging.getLogger("fdrsetu.scheduler")
 
@@ -20,6 +21,11 @@ def run_scheduled_maturity_scan():
         logger.info(
             f"Scheduled scan finished. Checked: {summary['total_scanned']}, "
             f"Matured: {summary['matured_count']}, Renewal Due: {summary['renewal_due_count']}"
+        )
+        escalation_summary = NotificationService.run_escalation_engine(db, trigger_source="AUTOMATED_CRON")
+        logger.info(
+            f"Scheduled escalation finished. Checked: {escalation_summary['scanned_fdrs']}, "
+            f"Escalations: {escalation_summary['escalations_triggered']}, Dispatched: {escalation_summary['notifications_dispatched']}"
         )
     except Exception as e:
         logger.error(f"Error during scheduled maturity scan: {e}")
