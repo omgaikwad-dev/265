@@ -235,4 +235,25 @@ export const verificationService = {
   }
 };
 
+export const lifecycleService = {
+  scanMaturities: async () => {
+    const response = await apiClient.post('/lifecycle/scan-maturities');
+    return response.data;
+  },
+  getMaturityTimeline: async (institutionId) => {
+    const response = await apiClient.get('/lifecycle/maturity-timeline', {
+      params: { institution_id: institutionId }
+    });
+    return response.data;
+  },
+  initiateRenewal: async (fdrId, data) => {
+    const response = await apiClient.post(`/fdr/${fdrId}/renew`, data);
+    return response.data;
+  },
+  getRenewalHistory: async (fdrId) => {
+    const response = await apiClient.get(`/fdr/${fdrId}/renewal-history`);
+    return response.data;
+  }
+};
+
 export default apiClient;

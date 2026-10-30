@@ -89,3 +89,4 @@ class DiscrepancyResolve(BaseModel):
 class ScrutinyRecommendationRequest(BaseModel):
     recommendation: str  # RECOMMEND_APPROVAL, RECOMMEND_REJECTION, NEED_MORE_DOCUMENTS
     remarks: str = Field(..., min_length=3)
+

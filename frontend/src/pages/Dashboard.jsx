@@ -21,11 +21,12 @@ import {
   Filter
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { institutionService, fdrService } from '../services/api';
+import { institutionService, fdrService, lifecycleService } from '../services/api';
 import NewFDRModal from '../components/NewFDRModal';
 import FDRDetailModal from '../components/FDRDetailModal';
 import OCRReviewModal from '../components/OCRReviewModal';
 import VerificationReportModal from '../components/VerificationReportModal';
+import InitiateRenewalModal from '../components/InitiateRenewalModal';
 
 export default function Dashboard() {
   const { user, role, logout, login, demoAccounts } = useAuth();
@@ -49,6 +50,9 @@ export default function Dashboard() {
   const [ocrTargetFDR, setOcrTargetFDR] = useState(null);
   const [isVerificationModalOpen, setIsVerificationModalOpen] = useState(false);
   const [verificationTargetFDR, setVerificationTargetFDR] = useState(null);
+  const [isRenewalModalOpen, setIsRenewalModalOpen] = useState(false);
+  const [renewalTargetFDR, setRenewalTargetFDR] = useState(null);
+  const [scanningMaturity, setScanningMaturity] = useState(false);
   const [switchingRole, setSwitchingRole] = useState(false);
 
   useEffect(() => {
@@ -110,6 +114,25 @@ export default function Dashboard() {
   const handleOpenVerification = (fdrItem) => {
     setVerificationTargetFDR(fdrItem);
     setIsVerificationModalOpen(true);
+  };
+
+  const handleOpenRenewal = (fdrItem) => {
+    setRenewalTargetFDR(fdrItem);
+    setIsRenewalModalOpen(true);
+  };
+
+  const handleTriggerMaturityScan = async () => {
+    setScanningMaturity(true);
+    try {
+      const res = await lifecycleService.scanMaturities();
+      alert(`Maturity scan completed!\nTotal Monitored: ${res.total_scanned}\nFlagged as Matured: ${res.matured_count}\nFlagged as Renewal Due: ${res.renewal_due_count}`);
+      fetchFDRs();
+    } catch (e) {
+      console.error("Scan error:", e);
+      alert("Failed to execute maturity scan.");
+    } finally {
+      setScanningMaturity(false);
+    }
   };
 
   // Metrics derived from live database records
@@ -439,7 +462,16 @@ export default function Dashboard() {
                 Examine submitted FDR instruments across all technical institutions against AI-OCR extractions and bank records.
               </p>
             </div>
-            <div className="text-right">
+            <div className="flex items-center space-x-2">
+              <button
+                onClick={handleTriggerMaturityScan}
+                disabled={scanningMaturity}
+                className="bg-white/10 hover:bg-white/20 text-white font-semibold text-xs px-3 py-1.5 rounded-lg border border-white/20 transition flex items-center space-x-1.5"
+                title="Execute automated maturity scan across database"
+              >
+                <RefreshCw className={`w-3.5 h-3.5 ${scanningMaturity ? 'animate-spin' : ''}`} />
+                <span>{scanningMaturity ? 'Scanning...' : 'Scan Maturities'}</span>
+              </button>
               <span className="bg-white/10 px-3 py-1 rounded-full text-xs font-semibold">
                 {fdrs.filter(f => f.lifecycle_status === 'UNDER_SCRUTINY').length} Cases Pending
               </span>
@@ -674,6 +706,7 @@ export default function Dashboard() {
         onClose={() => setIsDetailModalOpen(false)}
         onOpenOCR={handleOpenOCR}
         onOpenVerification={handleOpenVerification}
+        onOpenRenewal={handleOpenRenewal}
         onRefresh={() => {
           fetchFDRs();
           if (selectedFDR) {
@@ -712,6 +745,18 @@ export default function Dashboard() {
           }
         }}
         currentRole={role}
+      />
+
+      <InitiateRenewalModal
+        fdr={renewalTargetFDR}
+        isOpen={isRenewalModalOpen}
+        onClose={() => {
+          setIsRenewalModalOpen(false);
+          setRenewalTargetFDR(null);
+        }}
+        onSuccess={() => {
+          fetchFDRs();
+        }}
       />
 
     </div>

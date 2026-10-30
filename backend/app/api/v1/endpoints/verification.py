@@ -147,3 +147,4 @@ def update_verification_rule(
     return VerificationService.update_rule(
         db, rule_id, update_data.model_dump(exclude_unset=True), current_user, client_ip
     )
+

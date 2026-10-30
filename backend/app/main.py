@@ -14,6 +14,7 @@ logging.basicConfig(
 logger = logging.getLogger("fdrsetu.main")
 
 from app.core.seed import init_db
+from app.lifecycle.scheduler import start_lifecycle_scheduler, shutdown_lifecycle_scheduler
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -29,9 +30,16 @@ async def lifespan(app: FastAPI):
         logger.info("Database schemas and seed data ready.")
     except Exception as e:
         logger.error(f"Database initialization warning: {e}")
+
+    # Start APScheduler for maturity and validity monitoring
+    try:
+        start_lifecycle_scheduler()
+    except Exception as se:
+        logger.warning(f"Could not start background scheduler: {se}")
         
     yield
     # Shutdown
+    shutdown_lifecycle_scheduler()
     logger.info("FDRSetu Backend shutting down.")
 
 app = FastAPI(

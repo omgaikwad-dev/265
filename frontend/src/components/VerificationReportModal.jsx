@@ -727,3 +727,4 @@ export default function VerificationReportModal({ fdr, isOpen, onClose, onRefres
     </div>
   );
 }
+

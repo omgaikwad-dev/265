@@ -62,3 +62,4 @@ class Discrepancy(Base):
 
     fdr = relationship("FDRRecord", backref="discrepancies")
     report = relationship("VerificationReport", back_populates="discrepancies")
+

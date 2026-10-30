@@ -17,7 +17,7 @@ import {
 } from 'lucide-react';
 import { fdrService, documentService } from '../services/api';
 
-export default function FDRDetailModal({ fdr, isOpen, onClose, onRefresh, currentRole, onOpenOCR, onOpenVerification }) {
+export default function FDRDetailModal({ fdr, isOpen, onClose, onRefresh, currentRole, onOpenOCR, onOpenVerification, onOpenRenewal }) {
   const [uploadingDoc, setUploadingDoc] = useState(false);
   const [submittingScrutiny, setSubmittingScrutiny] = useState(false);
   const [actionError, setActionError] = useState(null);
@@ -320,6 +320,20 @@ export default function FDRDetailModal({ fdr, isOpen, onClose, onRefresh, curren
             >
               <Send className="w-3.5 h-3.5" />
               <span>{submittingScrutiny ? 'Submitting...' : 'Submit for AICTE Scrutiny'}</span>
+            </button>
+          )}
+
+          {['APPROVED_ACTIVE', 'RENEWAL_DUE', 'MATURED'].includes(fdr.lifecycle_status) && currentRole === 'ROLE_INSTITUTION_ADMIN' && (
+            <button
+              id="fdr-initiate-renewal-btn"
+              onClick={() => {
+                onClose();
+                if (onOpenRenewal) onOpenRenewal(fdr);
+              }}
+              className="bg-amber-600 hover:bg-amber-700 text-white font-semibold text-xs px-4 py-2 rounded-lg transition shadow-sm flex items-center space-x-1.5"
+            >
+              <RefreshCw className="w-3.5 h-3.5" />
+              <span>Initiate Renewal</span>
             </button>
           )}
         </div>
